@@ -68,7 +68,7 @@ public class PlayerFreeMove : MonoBehaviour
         moveDirection.y -= gravity; //後に* Time.deltaTimeするので不要
 
         //セッティングしたmoveDirectionの値を使ってMoveメソッドの発動
-        //※Playerが動く Time.deltaTimeでPC差によらないように動作安定
+        //※実際にPlayerが動く Time.deltaTimeでPC差によらないように動作安定
         //回転を含む前進だと、グローバルな座標指定からズレるので、グローバルな座標になるように変換してからMoveに与える
         Vector3 globalDirection = transform.TransformDirection(moveDirection);
         //RigidbodyのAddForceみたいなもの

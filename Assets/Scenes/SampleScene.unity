@@ -975,7 +975,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a7b9acb211c04c4296b69039a7c068c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerFreeMove
-  animatorBody: {fileID: 0}
+  animatorBody: {fileID: 1767029678}
   gravity: 1
   speedZ: 3
   speedJump: 1
