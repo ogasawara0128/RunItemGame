@@ -1,5 +1,6 @@
 using Unity.VectorGraphics;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerFreeMove : MonoBehaviour
 {
@@ -14,11 +15,20 @@ public class PlayerFreeMove : MonoBehaviour
     public float speedZ; //前に進む力
     public float speedJump; //ジャンプ力
 
+    private InputAction moveAction; //"Move"アクションを参照するための変数
+    private InputAction jumpAction; //"Jump"アクションを参照するための変数
+
     void Start()
     {
         //必要なコンポーネントを自動取得
         controller = GetComponent<CharacterController>(); //Playerについているコンポーネントの取得
         animator = animatorBody.GetComponent<Animator>(); //子オブジェクトが持っているAnimatorコンポーネントの取得
+
+        //現PlayerInputコンポーネントに設定されている現Mapは何かを取得=(Playerマップ)
+        //Update内に書く書き方 OnMoveで外に書くのも有り
+        InputActionMap actionMap = GetComponent<PlayerInput>().currentActionMap;
+        moveAction = actionMap.FindAction("Move"); //現マップ上にある"Move"というアクションを取得
+        jumpAction = actionMap.FindAction("Jump"); //現マップ上にある"Jump"というアクションを取得
     }
 
     // Update is called once per frame
@@ -27,11 +37,13 @@ public class PlayerFreeMove : MonoBehaviour
         //仕様としてCharacterControllerコンポーネントが接地判断を持っている
         if (controller.isGrounded)
         {
-            if (Input.GetAxis("Vertical") != 0.0f)
+            //if (Input.GetAxis("Vertical") != 0.0f)
+            if (moveAction.ReadValue<Vector2>().y != 0.0f)
             {
                 //上下キーによる前か後ろかの値の設定
                 //後ろの場合(マイナス方向)にはVerticalで勝手にマイナスになる
-                moveDirection.z = Input.GetAxis("Vertical") * speedZ;
+                //moveDirection.z = Input.GetAxis("Vertical") * speedZ;
+                moveDirection.z = moveAction.ReadValue<Vector2>().y * speedZ;
             }
             else
             {
@@ -41,9 +53,11 @@ public class PlayerFreeMove : MonoBehaviour
             //横回転 Rotateメソッドで直接回転させる
             //回転はY軸になる
             transform.Rotate(0, Input.GetAxis("Horizontal") * 300 * Time.deltaTime, 0);
+            transform.Rotate(0, moveAction.ReadValue<Vector2>().x * 300 * Time.deltaTime, 0);
 
             //ジャンプボタンが押されている間(GetButtonDownなら押した瞬間)
-            if (Input.GetButton("Jump"))
+            //if (Input.GetButton("Jump"))
+            if (jumpAction.IsPressed())
             {
                 moveDirection.y = speedJump; //y方向をセッティング
                 //animator.SetTrigger("jump"); //ジャンプアニメへの切替
