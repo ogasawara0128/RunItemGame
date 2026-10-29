@@ -38,12 +38,12 @@ public class PlayerFreeMove : MonoBehaviour
         if (controller.isGrounded)
         {
             //if (Input.GetAxis("Vertical") != 0.0f)
-            if (moveAction.ReadValue<Vector2>().y != 0.0f)
+            if (moveAction.ReadValue<Vector2>().y != 0.0f) //入力データとしてのVector2
             {
                 //上下キーによる前か後ろかの値の設定
                 //後ろの場合(マイナス方向)にはVerticalで勝手にマイナスになる
                 //moveDirection.z = Input.GetAxis("Vertical") * speedZ;
-                moveDirection.z = moveAction.ReadValue<Vector2>().y * speedZ;
+                moveDirection.z = moveAction.ReadValue<Vector2>().y * speedZ; //操作上の上下を3D空間の奥行に代入
             }
             else
             {
