@@ -1,6 +1,4 @@
-using NUnit.Framework.Internal;
 using System.Collections;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -184,7 +182,7 @@ public class PlayerRun : MonoBehaviour
         {
             moveDirection.z = knockbackForceZ; //ノックバック：後ろに弾かれる
             LifeDown(); //体力減少
-            recoverTime = StunDuration; //硬直時間をrecoverTimeにセット ※
+            recoverTime = StunDuration; //硬直時間をrecoverTimeにセット ※ここがダメージ硬直の始まり
         }
     }
 
