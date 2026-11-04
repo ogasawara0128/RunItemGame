@@ -1,4 +1,6 @@
+using NUnit.Framework.Internal;
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -8,6 +10,9 @@ public class PlayerRun : MonoBehaviour
     const int MaxLane = 2; //最大レーン番号
     const float LaneWidth = 2.0f; //レーン幅
 
+    const int DefaultLife = 3; //最大体力
+    const float StunDuration = 0.5f; //硬直時間
+
     CharacterController controller; //CharacterControllerを参照できる変数
     [SerializeField] private GameObject animatorBody; //Animatorコンポーネントを持っているオブジェクトの取得
     Animator animator; //Animatorを参照できる変数
@@ -15,6 +20,9 @@ public class PlayerRun : MonoBehaviour
     //Vector3 moveDirection =new Vector3(0,0,0);
     Vector3 moveDirection = Vector3.zero; //Moveメソッドに与える方向
     int targetLane; //目指すべきレーン
+
+    int life = DefaultLife; //現体力
+    float recoverTime = 0.0f; //硬直カウントダウン
 
     [Header("重力・前進・横移動・ジャンプ")]
     public float gravity; //重力地
@@ -24,6 +32,21 @@ public class PlayerRun : MonoBehaviour
 
     [Header("前進加速力")]
     public float accelerationZ = 10.0f; //加速力
+
+    [Header("ノックバック設定")]
+    public float knockbackForceZ = -6.0f; //後ろに弾かれる強さ(マイナス値)
+
+    //体力の残を参照できるメソッド
+    public int Life()
+    {
+        return life;
+    }
+
+    //硬直カウントダウン中か体力0なら止まる
+    bool IsStun()
+    {
+        return recoverTime > 0.0f || life <= 0;
+    }
 
     Coroutine resetIntervalCol; //インプットのインターバル置くための変数
 
@@ -66,7 +89,7 @@ public class PlayerRun : MonoBehaviour
             //回転はY軸になる
             //transform.Rotate(0, Input.GetAxis("Horizontal") * 300 * Time.deltaTime, 0);
             //transform.Rotate(0, moveAction.ReadValue<Vector2>().x * 300 * Time.deltaTime, 0);
-            
+
             //コルーチンが発動していない時だけ入力処理
             if (resetIntervalCol == null)
             {
@@ -74,20 +97,33 @@ public class PlayerRun : MonoBehaviour
                 else if (moveAction.ReadValue<Vector2>().x > 0) MoveToRight(); //右のレーン番号に変更
             }
 
-            //対象とするレーンをもとにmoveDirectionのX(横移動)を決める
-            float ratioX = (targetLane * LaneWidth - transform.position.x) / LaneWidth;
-            moveDirection.x = ratioX * speedX;
-
-            //自動前進するためのmoveDirectionZ(前進加速)を決める
-            float acceleratedZ = moveDirection.z + (accelerationZ * Time.deltaTime);
-            moveDirection.z = Mathf.Clamp(acceleratedZ, 0, speedZ);
-
             //ジャンプボタンが押されている間(GetButtonDownなら押した瞬間)
             //if (Input.GetButton("Jump"))
             if (jumpAction.IsPressed())
             {
+                if (IsStun()) return; //スタン中は何も起こさない
+
                 moveDirection.y = speedJump; //y方向をセッティング
                 //animator.SetTrigger("jump"); //ジャンプアニメへの切替
+            }
+
+            if (IsStun())
+            {
+                moveDirection.x = 0.0f; //横方向には動けない
+                //Z方向は0.05fずつノックバックが解消されるが、最大でも0で止まる
+                moveDirection.z = Mathf.Min(moveDirection.z + 0.05f, 0.0f);
+
+                recoverTime -= Time.deltaTime; //カウントダウンする
+            }
+            else
+            {
+                //自動前進するためのmoveDirectionZ(前進加速)を決める
+                float acceleratedZ = moveDirection.z + (accelerationZ * Time.deltaTime);
+                moveDirection.z = Mathf.Clamp(acceleratedZ, 0, speedZ);
+
+                //対象とするレーンをもとにmoveDirectionのX(横移動)を決める
+                float ratioX = (targetLane * LaneWidth - transform.position.x) / LaneWidth;
+                moveDirection.x = ratioX * speedX;
             }
         }
 
@@ -111,16 +147,20 @@ public class PlayerRun : MonoBehaviour
 
     public void MoveToLeft()
     {
+        if (IsStun()) return; //スタン中は何も起こさない
+
         if (targetLane > MinLane) //現レーンがまだ最大でなければ
         {
             targetLane--; //対象レーン番号をひとつ増やす
             //次の入力認識するまでのインターバルを保つコルーチンの発動
-            resetIntervalCol=StartCoroutine(ResetIntervalCol()); //コルーチン:何かの処理を別で発生させる
+            resetIntervalCol = StartCoroutine(ResetIntervalCol()); //コルーチン:何かの処理を別で発生させる
         }
     }
 
     public void MoveToRight()
     {
+        if (IsStun()) return; //スタン中は何も起こさない
+
         if (targetLane < MaxLane) //現レーンがまだ最大でなければ
         {
             targetLane++; //対象レーン番号をひとつ増やす
@@ -134,4 +174,23 @@ public class PlayerRun : MonoBehaviour
         resetIntervalCol = null; //コルーチン発動中である証明だった変数を解放
     }
 
+    //Playerの接触判定
+    private void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        if (IsStun()) return; //スタン中なら二重にイベントは起こさない 
+
+        //ぶつかった相手がEnemyなら
+        if(hit.gameObject.tag=="Enemy")
+        {
+            moveDirection.z = knockbackForceZ; //ノックバック：後ろに弾かれる
+            LifeDown(); //体力減少
+            recoverTime = StunDuration; //硬直時間をrecoverTimeにセット ※
+        }
+    }
+
+    //※体力のダメージによる減少
+    public void LifeDown()
+    {
+        life--;
+    }
 }

@@ -960,6 +960,7 @@ MonoBehaviour:
   speedX: 3
   speedJump: 8
   accelerationZ: 10
+  knockbackForceZ: -6
 --- !u!1001 &1049048792
 PrefabInstance:
   m_ObjectHideFlags: 0
