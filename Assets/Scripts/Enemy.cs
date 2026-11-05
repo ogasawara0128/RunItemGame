@@ -4,12 +4,13 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-
     private int enemyLife = 3; //敵の体力
     public GameObject enemyBody; //見た目のオブジェクトの情報
 
     public float freezeTime = 1.0f;//無敵時間の秒数
     Coroutine damageStart;//ダメージ中のコルーチンを参照する変数
+
+    public GameObject effectObject; //撃破時のエフェクト
 
     void Update()
     {
@@ -44,12 +45,19 @@ public class Enemy : MonoBehaviour
                 enemyLife--; //体力1減る
                 if (enemyLife <=0)
                 {
+                    CreateEffect();
                     Destroy(gameObject); //消滅
                 }
                 else //体力残っていれば
                 {
                     damageStart = StartCoroutine(DamageStart()); //コルーチン発動
                 }
+            }
+            //ぶつかった相手がSlashなら即撃破
+            else if (other.gameObject.tag == "Slash")
+            {
+                CreateEffect();
+                Destroy(gameObject);
             }
         }
     }
@@ -63,5 +71,10 @@ public class Enemy : MonoBehaviour
 
         //見た目のMeshRendererをON
         enemyBody.GetComponent<MeshRenderer>().enabled = true;
+    }
+
+    void CreateEffect()
+    {
+        Instantiate(effectObject,transform.position,Quaternion.identity);
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -51,6 +52,9 @@ public class PlayerRun : MonoBehaviour
     private InputAction moveAction; //"Move"アクションを参照するための変数
     private InputAction jumpAction; //"Jump"アクションを参照するための変数
 
+    //[Header("プレイヤーの見た目オブジェクト")]
+    //public GameObject playerBody;
+
     void Start()
     {
         //必要なコンポーネントを自動取得
@@ -67,6 +71,30 @@ public class PlayerRun : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //GameOverは1フレームしかないためGameEndにする
+        if (GameManager.gameState == GameState.GameEnd) return;
+        //点滅処理
+        if (IsStun())
+        {
+            float val = Mathf.Sin(Time.time * 50);
+            if (val > 0)
+            {
+                animatorBody.SetActive(true);
+                //手足が残るため今回は不採用
+                //animatorBody.GetComponent<MeshRenderer>().enabled = true;
+            }
+            else
+            {
+                animatorBody.SetActive(false);
+            }
+        }
+        else //ダメージ中じゃない時
+        {
+            //姿を現す
+            animatorBody.GetComponent<MeshRenderer>().enabled = true;
+        }
+
+
         //仕様としてCharacterControllerコンポーネントが接地判断を持っている
         if (controller.isGrounded)
         {
@@ -178,7 +206,7 @@ public class PlayerRun : MonoBehaviour
         if (IsStun()) return; //スタン中なら二重にイベントは起こさない 
 
         //ぶつかった相手がEnemyなら
-        if(hit.gameObject.tag=="Enemy")
+        if (hit.gameObject.tag == "Enemy")
         {
             moveDirection.z = knockbackForceZ; //ノックバック：後ろに弾かれる
             LifeDown(); //体力減少
@@ -190,5 +218,16 @@ public class PlayerRun : MonoBehaviour
     public void LifeDown()
     {
         life--;
+
+        //UIControllerを探して、ライフ更新メソッド
+        UIController controller = GameObject.FindAnyObjectByType<UIController>();
+        controller.UpdateLife();
+
+        //ライフが0以下になったら
+        if (life <= 0)
+        {
+            //ステータス変更
+            GameManager.gameState = GameState.GameOver;
+        }
     }
 }
