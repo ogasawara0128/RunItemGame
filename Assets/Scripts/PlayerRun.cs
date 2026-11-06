@@ -41,6 +41,16 @@ public class PlayerRun : MonoBehaviour
         return life;
     }
 
+    //Lifeを回復させるメソッド
+　　public void RecoverLife(int val)
+    {
+        life += val;
+        if (life > DefaultLife)
+        {
+            life=DefaultLife;
+        }
+    }
+
     //硬直カウントダウン中か体力0なら止まる
     bool IsStun()
     {
@@ -91,7 +101,7 @@ public class PlayerRun : MonoBehaviour
         else //ダメージ中じゃない時
         {
             //姿を現す
-            animatorBody.GetComponent<MeshRenderer>().enabled = true;
+            animatorBody.SetActive(true);
         }
 
 
@@ -123,16 +133,6 @@ public class PlayerRun : MonoBehaviour
                 else if (moveAction.ReadValue<Vector2>().x > 0) MoveToRight(); //右のレーン番号に変更
             }
 
-            //ジャンプボタンが押されている間(GetButtonDownなら押した瞬間)
-            //if (Input.GetButton("Jump"))
-            if (jumpAction.IsPressed())
-            {
-                if (IsStun()) return; //スタン中は何も起こさない
-
-                moveDirection.y = speedJump; //y方向をセッティング
-                //animator.SetTrigger("jump"); //ジャンプアニメへの切替
-            }
-
             if (IsStun())
             {
                 moveDirection.x = 0.0f; //横方向には動けない
@@ -150,6 +150,16 @@ public class PlayerRun : MonoBehaviour
                 //対象とするレーンをもとにmoveDirectionのX(横移動)を決める
                 float ratioX = (targetLane * LaneWidth - transform.position.x) / LaneWidth;
                 moveDirection.x = ratioX * speedX;
+            }
+
+            //ジャンプボタンが押されている間(GetButtonDownなら押した瞬間)
+            //if (Input.GetButton("Jump"))
+            if (jumpAction.IsPressed())
+            {
+                if (IsStun()) return; //スタン中は何も起こさない
+
+                moveDirection.y = speedJump; //y方向をセッティング
+                //animator.SetTrigger("jump"); //ジャンプアニメへの切替
             }
         }
 
