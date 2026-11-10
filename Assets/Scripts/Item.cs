@@ -6,11 +6,13 @@ public class Item : MonoBehaviour
     public enum ItemType
     {
         Life,
-        Bullet
+        Bullet,
+        Upgrade
     }
 
     public ItemType itemType;
     public int value;
+    public UpgradeData upgradeData; //生成したデータの情報を参照できる変数
 
     private void OnTriggerEnter(Collider other)
     {
@@ -26,6 +28,9 @@ public class Item : MonoBehaviour
                 case ItemType.Bullet:
                     other.gameObject.GetComponent<PlayerShooter>().AddBullet(value);
                     FindAnyObjectByType<UIController>().UpdateBullet(); //UI Bullet更新
+                    break;
+                case ItemType Upgrade:
+                    GameData.AddUpgrade(upgradeData); //管理リストに加える
                     break;
             }
             Destroy(gameObject);

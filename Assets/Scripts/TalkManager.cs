@@ -41,7 +41,7 @@ public class TalkManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (submitAction.WasPressedThisFrame()) //OnSubmitだと全てが一斉に発動してしまうので注意
+        if (submitAction.WasPressedThisFrame())
         {
             //メッセージを更新
             AdvanceTalk();

@@ -20,6 +20,9 @@ public class UIController : MonoBehaviour
     //ボタン関連
     public GameObject buttonPanel;
     public GameObject retryButton;
+    public GameObject nextButton;
+
+    public string nextScene; //次の行き先
 
     void Start()
     {
@@ -76,6 +79,12 @@ public class UIController : MonoBehaviour
         SceneManager.LoadScene(currentScene);
     }
 
+    //ネクストボタン
+    public void Next()
+    {
+        SceneManager.LoadScene(nextScene);
+    }
+
     //ゲームオーバー時、GameManagerから呼び出されるメソッド
     public void GameOverDisplay()
     {
@@ -86,5 +95,18 @@ public class UIController : MonoBehaviour
 
         sliderPanel.SetActive(false); //スライダーパネルの非表示
         bulletPanel.SetActive(false); //Bulletパネルの非表示
+        nextButton.SetActive(false); //retryボタンのみにする
+    }
+
+    public void GameClearDisplay()
+    {
+        buttonPanel.SetActive(true); //ボタンの表示
+        //ステータス「GAME CLEAR」の表示
+        statusText.SetActive(true);
+        statusText.GetComponent<TextMeshProUGUI>().text = "GAME CLEAR";
+
+        sliderPanel.SetActive(false); //スライダーパネルの非表示
+        bulletPanel.SetActive(false); //Bulletパネルの非表示
+        retryButton.SetActive(false); //nextボタンのみにする
     }
 }
